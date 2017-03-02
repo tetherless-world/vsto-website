@@ -1,0 +1,37 @@
+<html>
+    <head>
+        <title>{{title}}</title>
+        <link rel="stylesheet" href="{{root_dir}}/css/vsto.css"/>
+        <script type="text/javascript" src="https://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script type="text/javascript" src="{{root_dir}}/js/vsto.js"></script>
+        <script type="text/javascript" src="{{root_dir}}/js/data.js"></script>
+        {{> init}}
+    </head>
+    <body>
+        <div id="header">
+            <div id="navbar">
+                <table class="header_wrapper">
+                    <tr>
+                        <td width="760" height="99" align="center" valign="bottom" nowrap style="padding-left: 150px;">
+                            <div class="header_wrapper2">
+                                <ul id="header_menu">
+                                  <li><a id="nav-home" class="selected" onclick="goHome();">Home</a></li>
+                                  <li><a id="nav-data" class="notselected" onclick="goToData();">Data</a></li>
+                                  <li><a id="nav-communities" class="notselected" onclick="goToCommunities();">Communities</a></li>
+                                  <li><a id="nav-about" class="notselected" onclick="goToAbout();">About VSTO</a></li>
+                                  <li><a id="nav-login" class="notselected" onclick="goToLoginout();">Login</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        {{{contents}}}
+
+        {{> footer}}
+
+    </body>
+</html>
+

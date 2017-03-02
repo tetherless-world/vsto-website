@@ -1,0 +1,267 @@
+html {
+  padding:0;
+  margin:0;
+}
+
+body {
+  color: #212121;
+  font-family: Verdana, Arial, Helvetica, sans-serif;
+  font-size: 12px;
+  margin:0;
+  padding:0;
+}
+
+a {
+  text-decoration: none;
+}
+
+#header {
+  display: block;
+  padding: 0px;
+  margin: 0px;
+  width: 100%;
+  height: 100px;
+  background-color: black;
+}
+
+#navbar {
+  display:block;
+  width: 760px;
+  height: 100px;
+  margin-left: auto;
+  margin-right: auto;
+  vertical-align: bottom;
+  text-align: center;
+}
+
+#header_wrapper {
+  width: 760px;
+  border: 0;
+}
+
+#header_menu {
+  vertical-align: bottom;
+  padding: 0;
+  list-style-type: none;
+  text-align: center;
+}
+
+#header_menu li {
+  display: block;
+  float: left;
+  text-align: center;
+  padding-right: .2em;
+}
+
+#header_menu li a.selected {
+  border-bottom: 1px #FFFFFF solid;
+}
+
+#header_menu li a.selected:hover {
+  background-color: #FFFFFF;
+  color: #364B8A;
+}
+
+#header_menu a.notselected {
+}
+
+#header_menu li a {
+  color: #364B8A;
+  background-color: #FFFFFF;
+  font-size: 11px;
+  display: block;
+  height: 17px;
+  width: 90px;
+  font-weight: bold;
+  padding-top: 2px;
+  border-top: 1px #666666 solid;
+  border-bottom: 1px #666666 solid;
+  border-left: 1px #666666 solid;
+  border-right: 1px #666666 solid;
+}
+
+#header_menu li a:hover {
+  background-color: #E4E7EC;
+  color: #2334FF;
+  cursor: pointer;
+}
+
+#centereddiv {
+  width:740px;
+  margin-left:auto;
+  margin-right:auto;
+}
+
+#acknowledge {
+  text-align: center;
+  display: block;
+  float: right;
+  clear: right;
+  margin-right: 30px;
+  margin-top: 10px;
+  background-color: #6888E9;
+  border: 1px #000 solid;
+  color: #000;
+  padding: 8px;
+}
+
+#status {
+  position:fixed;
+  top: 130px;
+  right: 30px;
+  width: 200px;
+  background-color: #bbbbbb;
+  padding: 8px;
+  border: 3px #000 ridge;
+}
+
+ul.listtoolbycode li.toolbycode {
+  margin-bottom: 2em;
+}
+
+ul.listtoolbyname li.toolbyname {
+  margin-bottom: 2em;
+}
+
+ul.listtoolbycode li.toolbycode p {
+  line-height: 10px;
+}
+
+ul.listtoolbyname li.toolbyname p {
+  line-height: 10px;
+}
+
+ul.listtoolbycode li.toolbycode span.type {
+  margin-left: 10px;
+  font-size: 10px;
+  color: #555555;
+}
+
+ul.listtoolbyname li.toolbyname span.type {
+  margin-left: 10px;
+  font-size: 10px;
+  color: #555555;
+}
+
+ul.listtoolbycode li.toolbycode span.itemcode {
+  font-weight: bold;
+}
+
+ul.listtoolbyname li.toolbyname span.itemcode {
+  color: #000;
+}
+
+ul.listtoolbyname li.toolbyname span.name {
+  font-weight: bold;
+}
+
+ul.listtoolbycode li.toolbycode p.link {
+  line-height: 0px;
+}
+
+ul.listtoolbyname li.toolbyname p.link {
+  line-height: 0px;
+}
+
+ul.listtoolbycode li.toolbycode p.link:hover {
+  text-decoration: underline;
+}
+
+ul.listtoolbyname li.toolbyname span.name:hover {
+  text-decoration: underline;
+}
+
+ul.listtoolbytype {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: -16px;
+}
+
+ul.listtoolbytype ul {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: -16px;
+}
+
+ul.listtoolbytype span.name {
+  font-weight: bold;
+}
+
+ul.listtoolbytype span.name:hover {
+  text-decoration: underline;
+}
+
+ul.listtoolbytype span.code {
+  color: #000;
+}
+
+li.collapsed {
+  height: 18px;
+}
+
+li.collapsed ul {
+  visibility: hidden;
+}
+
+li.expanded {
+  height: auto;
+}
+
+div#status a {
+  vertical-align:super;
+  font-size: 8px;
+  color: #d00000;
+}
+
+div#status a:hover {
+  text-decoration: underline;
+}
+
+a:visited {
+  color: #008;
+}
+
+table#calendar tr td {
+  font-size: 17px;
+}
+
+table#calendar tr td table td {
+  font-size: 17px;
+  text-align: center;
+}
+
+table#calendar tr td table td a {
+  background-color: #00aa00;
+  display:block;
+  color: #000;
+}
+
+table#calendar tr td table td {
+  background-color: #888;
+}
+
+table#calendar tr td table td span {
+  background-color: #f00;
+  display:block;
+}
+
+#vsto-home {
+  display: block;
+}
+
+#vsto-data {
+  display: none;
+}
+
+#vsto-communities {
+  display: none;
+}
+
+#vsto-about {
+  display: none;
+}
+
+#vsto-login {
+  display: none;
+}
+
