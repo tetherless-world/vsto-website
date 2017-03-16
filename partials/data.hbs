@@ -1,11 +1,11 @@
 <div id="vsto-data">
-    <div id="centereddiv">
+    <div class="centereddiv" id="centereddiv">
         <h2 align="center">Accessing Data in the Virtual Solar Terrestrial Observatory</h2>
         <p>Please select a starting point:</p>
         <ul>
-            <li><a href="request.php?select=instrument">Choose an instrument</a></li>
-            <li><a href="request.php?select=date">Choose dates</a></li>
-            <li><a href="request.php?select=parameter">Choose physical parameters</a></li>
+            <li><a href="{{root_dir}}/request?select=instrument">Choose an instrument</a></li>
+            <li><a href="{{root_dir}}/request?select=date">Choose dates</a></li>
+            <li><a href="{{root_dir}}/request?select=parameter">Choose physical parameters</a></li>
         </ul>
         <p>Data from the CEDAR archive is available in OPeNDAP or ASCII format. A few parameters can be plotted versus time and height. Data from the MLSO archive is available as PG or FITS images.</p>
         <p>Before downloading data from the CEDAR database, users are required to agree to the <a href="/vsto/security/registration.php">Rules of the Road</a>, which entitles them to a VSTO login. No login is necessary to plot CEDAR data, or to access MLSO data.</p>

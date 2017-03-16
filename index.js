@@ -100,11 +100,13 @@ metalsmith(__dirname)
 	*   @property 	[removeScriptTypeAttributes] 	{Boolean} 	remove type="text/javascript" from script tags (defaults to true)
 	*   @property 	[minifyCSS] 					{Boolean} 	minify CSS (defaults to false)
 	*/
+	/*
 	.use(minHTML({
 		minifyJS: true,
 		removeScriptTypeAttributes: false,
 		minifyCSS: true
 	}))
+	*/
 
 	/*
 	* Minify CSS
@@ -113,11 +115,13 @@ metalsmith(__dirname)
 	*   @property	[cleanCSS] 	{Object}	configuration of clean-css API
 	*    @property	[rebase] 	{Boolean}	rebase URLs (defaults to true)
 	*/
+	/*
 	.use(minCSS({
 		cleanCSS: {
 			rebase: false	// skip URL rebasing
 		}
 	}))
+	*/
 
 	/*
 	* Minify JS
@@ -125,9 +129,11 @@ metalsmith(__dirname)
 	* @parameter 	options 		{Object} 	plugin options
 	*   @property 	nameTemplate 	{String} 	new filename ([name] and [ext] are tokens)
 	*/
+	/*
 	.use(minJS({
 		nameTemplate: "[name].[ext]"
 	}))
+	*/
 
 	/*
 	* Store MIME types (by extension lookup)

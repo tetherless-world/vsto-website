@@ -36,7 +36,6 @@ function goToData() {
     $(document).prop('title', 'Access VSTO Data');
     $("#vsto-data").show();
     $("#nav-data").attr("class", "selected");
-    loadData();
 }
 
 function goToCommunities() {
@@ -60,27 +59,37 @@ function goToLoginout() {
     $("#nav-login").attr("class", "selected");
 }
 
+function goToTab(show) {
+    if(window.location.pathname.indexOf("index") == -1) {
+        var qsShow = "";
+        if(show) qsShow = "?show=" + show;
+        window.location.replace(props.rootDir + "/index" + qsShow);
+    } else {
+        var showTab = show;
+        if (!show) showTab = getQueryVariable("show");
+        switch (showTab) {
+            case "home":
+                goHome();
+                break;
+            case "data":
+                goToData();
+                break;
+            case "communities":
+                goToCommunities();
+                break;
+            case "about":
+                goToAbout();
+                break;
+            case "login":
+                goToLoginout();
+                break;
+            default:
+                goHome();
+                break;
+        }
+    }
+}
+
 $(document).ready(function() {
     $("#navbar").css("background-image", 'url("' + props.rootDir + '/images/header.jpg")');
-    var showTab = getQueryVariable("show");
-    switch(showTab) {
-        case "home":
-            goHome();
-            break;
-        case "data":
-            goToData();
-            break;
-        case "communities":
-            goToCommunities();
-            break;
-        case "about":
-            goToAbout();
-            break;
-        case "login":
-            goToLoginout();
-            break;
-        default:
-            goHome();
-            break;
-    }
 });
