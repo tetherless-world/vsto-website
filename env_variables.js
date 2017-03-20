@@ -18,6 +18,12 @@ module.exports = function(environment) {
 			env["localhost"] = true;
 
 			break;
+		case "prod":
+			env["root_dir"] = "";
+			env["hostname"] = "https://vsto.org";
+			env["localhost"] = false;
+
+			break;
 	}
 
 	return env;

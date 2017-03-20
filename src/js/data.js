@@ -15,19 +15,18 @@ function loadData(nextSelection) {
     $("#parameter-list").hide();
     $("#opendap-list").hide();
 
-    console.log("nextSelection 1 = " + nextSelection);
     if (!nextSelection) nextSelection = "instrument";
-    console.log("nextSelection 2 = " + nextSelection);
+    console.log("nextSelection = " + nextSelection);
 
     var qs = "";
+    var data = {};
+    var hasQueryString = false;
     var ndays = 0;
-    var startYear = 0;
-    var startMonth = 0;
-    var startDay = 0;
     var endpoint = null;
     var current = '<div id="data-title" class="data-title">Current Selection</div>';
     var alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
     if (alreadySelected) {
+        hasQueryString = true;
         $.each(alreadySelected, function (i, item) {
             qs += "&" + item.queryString.name + "=";
             values = item.queryString.values;
@@ -37,224 +36,66 @@ function loadData(nextSelection) {
                 first = false;
                 qs += value;
             });
+            data.qs = qs;
             if(item.queryString.name == "ndays") {
-                ndays = item.queryString.values[0];
+                data.ndays = item.queryString.values[0];
             } else if(item.queryString.name == "year") {
-                startYear = item.queryString.values[0];
+                data.startYear = item.queryString.values[0];
             } else if(item.queryString.name == "month") {
-                startMonth = item.queryString.values[0];
+                data.startMonth = item.queryString.values[0];
             } else if(item.queryString.name == "day") {
-                startDay = item.queryString.values[0];
+                data.startDay = item.queryString.values[0];
             }
             current += '<p class="current-item"><span class="current-title">' + item.display.name + '</span>: ' + item.display.values[0] + '</p>';
+            first = true;
+            $.each(item.display.values, function(j, value) {
+                if(!first) {
+                    current += '<p style="margin:0 0 0 20px;">' + value + '</p>';
+                }
+                first = false;
+            });
         });
+        if(sessionStorage.getItem("startDateId")) {
+            qs += "&startdateid=" + sessionStorage.getItem("startDateId");
+            qs += "&enddateid=" + sessionStorage.getItem("endDateId");
+        }
         $("#current-selection").empty().append(current).show();
     }
 
     if(nextSelection == "instrument") {
         sessionStorage.setItem("selecting","instrument");
-        console.log("making request");
-        // ajax call to get the instruments
-        // success parse the json
-        // fail display error
-        endpoint = "http://localhost:8080/instruments" + qs;
-        console.log("endpoint = " + endpoint);
-        $("#loading").show();
-        $.ajax(endpoint, {
-            type: "get",
-            dataType: "json",
-            success: function(data, status) {
-                $("#loading").hide();
-                console.log(JSON.stringify(data));
-                var instruments = data.instruments;
-                if(instruments) {
-                    var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
-                    $.each(instruments, function(i, item) {
-                       html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + item.kinst + '"/><label for="' + item.kinst + '">' + item.kinst + ' - ' + item.name + ' - ' + item.class + '</label></div>';
-                    });
-                    $("#instrument-list").empty().append(html).show();
-                }
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                $("#loading").hide();
-                console.error("query failed " + JSON.stringify(xhr));
-                $("#request-error").empty().text("Request for the instrument list has failed, please try again later").show();
-            }
-        });
+        if(hasQueryString == false) {
+            endpoint = "http://localhost:8080/instruments" + qs;
+            callWS(endpoint, "json", displayInstruments, data);
+        } else {
+            endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=instruments" + qs;
+            callWS(endpoint, "text", displayTextInstruments, data);
+        }
     } else if(nextSelection == "year") {
         sessionStorage.setItem("selecting","year");
-        endpoint = "http://localhost/~westp/rstfl/catalog.php?system=cedar&request=years" + qs;
-        console.log("endpoint = " + endpoint);
-        $("#loading").show();
-        $.ajax(endpoint, {
-            type: "get",
-            dataType: "text",
-            success: function(data, status) {
-                $("#loading").hide();
-                var html = '<div id="data-title" class="data-title">Select a Year</div>';
-                html += '<select class="option-items" size="5" name="years" id="years" required>';
-                var years = data.split('\n');
-                $.each(years, function (i, year) {
-                    if (year != "") {
-                        html += '<option class="option-item" id="' + year + '" value="' + year + '">' + year + '</option>';
-                    }
-                });
-                html += '</select>';
-                $("#year-list").empty().append(html).show();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                $("#loading").hide();
-                console.error("query failed " + JSON.stringify(xhr));
-                $("#request-error").empty().text("Request for the list of years has failed, please try again later").show();
-            }
-        });
+        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=years" + qs;
+        callWS(endpoint, "text", displayYear, data);
     } else if(nextSelection == "month") {
         sessionStorage.setItem("selecting","month");
-        endpoint = "http://localhost/~westp/rstfl/catalog.php?system=cedar&request=months" + qs;
-        console.log("endpoint = " + endpoint);
-        $("#loading").show();
-        $.ajax(endpoint, {
-            type: "get",
-            dataType: "text",
-            success: function(data, status) {
-                $("#loading").hide();
-                var html = '<div id="data-title" class="data-title">Select a Month</div>';
-                html += '<select class="option-items" size="5" name="months" id="months" required>';
-                var months = data.split('\n');
-                $.each(months, function (i, month) {
-                    if (month != "") {
-                        html += '<option class="option-item" id="' + month + '" value="' + month + '">' + month + '</option>';
-                    }
-                });
-                html += '</select>';
-                $("#month-list").empty().append(html).show();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                $("#loading").hide();
-                console.error("query failed " + JSON.stringify(xhr));
-                $("#request-error").empty().text("Request for the list of months has failed, please try again later").show();
-            }
-        });
+        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=months" + qs;
+        callWS(endpoint, "text", displayMonth, data);
     } else if(nextSelection == "day") {
         sessionStorage.setItem("selecting","day");
-        endpoint = "http://localhost/~westp/rstfl/catalog.php?system=cedar&request=days" + qs;
-        console.log("endpoint = " + endpoint);
-        $("#loading").show();
-        $.ajax(endpoint, {
-            type: "get",
-            dataType: "text",
-            success: function(data, status) {
-                $("#loading").hide();
-                var html = '<div id="data-title" class="data-title">Select a Day</div>';
-                html += '<select class="option-items" size="5" name="days" id="days" required>';
-                var days = data.split('\n');
-                $.each(days, function (i, day) {
-                    if (day != "") {
-                        html += '<option class="option-item" id="' + day + '" value="' + day + '">' + day + '</option>';
-                    }
-                });
-                html += '</select>';
-                html += '<div id="num-days-title" class="data-title">Enter number of days</div>';
-                html += '<input id="num-days" class="num-days" type="number" min="1" max="365" required/>';
-                $("#day-list").empty().append(html).show();
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                $("#loading").hide();
-                console.error("query failed " + JSON.stringify(xhr));
-                $("#request-error").empty().text("Request for the list of months has failed, please try again later").show();
-            }
-        });
+        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=days" + qs;
+        callWS(endpoint, "text", displayDay, data);
     } else if(nextSelection == "opendap") {
         sessionStorage.setItem("selecting","opendap");
-        // get the startdateid
-        // add the ndays to that
-        // getFileList
-        // given the list of files build the opendap URL's for das, dds, data, flat, tab, stream
-        endpoint = "http://localhost/~westp/rstfl/catalog.php?system=cedar&request=dateid" + qs;
-        console.log("endpoint = " + endpoint);
-        $("#loading").show();
-        $.ajax(endpoint, {
-            type: "get",
-            dataType: "text",
-            success: function(data, status) {
-                $("#loading").hide();
-                console.log("success");
-                var dateids = data.split('\n');
-                if(dateids.length == 0) {
-                    console.error("no dateid was returned " + data);
-                } else {
-                    var startdateid = parseInt(dateids[0]);
-                    console.log("startdateid = " + startdateid);
-                    var enddateid = startdateid + parseInt(ndays);
-                    console.log("enddateid = " + enddateid);
-                    qs += "&startdateid=" + startdateid + "&enddateid=" + enddateid;
-                    endpoint = "http://localhost/~westp/rstfl/catalog.php?system=cedar&request=files" + qs;
-                    console.log("endpoint = " + endpoint);
-                    $("#loading").show();
-                    $.ajax(endpoint, {
-                        type: "get",
-                        dataType: "text",
-                        success: function (data, status) {
-                            $("#loading").hide();
-                            var startDate = new Date();
-                            startDate.setYear(startYear);
-                            startDate.setMonth(startMonth);
-                            startDate.setDate(startDay);
-                            console.log("startDate = ", startDate);
-                            var endDate = startDate;
-                            endDate.setDate(endDate.getDate() + parseInt(ndays));
-                            console.log("endDate = ", endDate);
-                            var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
-                            var firstFile = true;
-                            var containers = "";
-                            var constraints = "";
-                            var files = data.split('\n');
-                            $.each(files, function (i, file) {
-                                if (file != "") {
-                                    if(!firstFile) {
-                                        containers += ",";
-                                        constraints += ",";
-                                    }
-                                    firstFile = false;
-                                    containers += file;
-                                    constraints += file + '.constraint=date(' + startYear + '|' + twoDigit(startMonth) + twoDigit(startDay) + '|0|0|' + endDate.getFullYear() + '|' + twoDigit(endDate.getMonth()) + twoDigit(endDate.getDate()) + '|2359|5999)';
-                                }
-                            });
-                            var start = "http://cedarweb.vsp.ucar.edu/opendap?request=define+d+as+" + containers;
-                            var withConstraints = start + "+with+" + constraints;
-                            var end = "+for+d;";
-                            var das = start + ";get+das" + end;
-                            var dds = withConstraints + ";get+dds" + end;
-                            var dods = withConstraints + ";get+dods" + end;
-                            var flat = withConstraints + ";get+flat" + end;
-                            var tab = withConstraints + ";get+tab" + end;
-                            var info = withConstraints + ";get+info" + end;
-                            var stream = withConstraints + ";get+stream" + end;
-                            html += '<p><a target="opendap" href="' + das + '">DAS</a> - Data Attributes</p>'
-                            html += '<p><a target="opendap" href="' + dds + '">DDS</a> - Data Structure</p>'
-                            html += '<p><a target="opendap" href="' + dods + '">DATA</a> - Data</p>'
-                            html += '<p><a target="opendap" href="' + flat + '">FLAT</a> - Flat ascii</p>'
-                            html += '<p><a target="opendap" href="' + tab + '">TAB</a> - Tab delimited ascii</p>'
-                            html += '<p><a target="opendap" href="' + stream + '">STREAM</a> - Data streamed directly</p>'
-                            html += '<p><a target="opendap" href="' + info + '">INFO</a> - Data information</p>'
-                            $("#opendap-list").empty().append(html).show();
-                        },
-                        error: function (xhr, textStatus, errorThrown) {
-                            $("#loading").hide();
-                            console.error("query failed " + JSON.stringify(xhr));
-                            $("#request-error").empty().text("Request for the list of files has failed, please try again later").show();
-                        }
-                    });
-                }
-            },
-            error: function(xhr, textStatus, errorThrown) {
-                $("#loading").hide();
-                console.error("query failed " + JSON.stringify(xhr));
-                $("#request-error").empty().text("Request for the starting date id failed, please try again later").show();
-            }
-        });
+        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=files" + qs;
+        callWS(endpoint, "text", displayOpendap, data);
     } else if(nextSelection == "parameter") {
         sessionStorage.setItem("selecting","parameter");
+        if(hasQueryString == false) {
+            endpoint = "http://localhost:8080/parameters" + qs;
+            callWS(endpoint, "json", displayAllParameters, data);
+        } else {
+            endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=params" + qs;
+            callWS(endpoint, "text", displayParameters, data);
+        }
     } else {
         sessionStorage.removeItem("selecting");
         console.error("Requesting an invalid type " + request);
@@ -325,6 +166,20 @@ function continueOn() {
                 display = {name: "Num Days", values: [ndays]};
             }
             break;
+        case "parameter":
+            var checked = $("#parameter-list input:checked");
+            if(checked.length == 0) {
+                console.error("No parameter selections were made");
+                $("#request-error").empty().text("Please select at least one parameter to proceed.").show();
+            } else {
+                $.each(checked, function(i, item) {
+                    values.push(item.id);
+                    displays.push(jQuery('label[for=' + item.id + ']').html());
+                });
+                queryString = {name: "params", values: values};
+                display = {name: "Parameters", values: displays};
+            }
+            break;
         default:
             break;
     }
@@ -339,11 +194,50 @@ function continueOn() {
             sessionStorage.setItem("alreadySelected", JSON.stringify(newSelected));
         }
         console.log("alreadySelected = " + sessionStorage.getItem("alreadySelected"));
-        gotoNextSelection();
+        if(sessionStorage.getItem("selecting") == "day") {
+            getDateIds();
+        } else {
+            gotoNextSelection();
+        }
     } else if(sessionStorage.getItem("selecting") != "opendap") {
         console.error("Failed to handle current selection " + sessionStorage.getItem("selecting"));
         $("#request-error").empty().text("We have encountered a problem handling your request.").show();
     } else {
+        if(sessionStorage.getItem("selecting") == "day") {
+            getDateIds();
+        } else {
+            gotoNextSelection();
+        }
+    }
+}
+
+function getDateIds() {
+    var addSelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
+    var qs = "";
+    var data = {};
+    $.each(addSelected, function (i, item) {
+        if(item.queryString.name == "year") {
+            qs += "&year=" + item.queryString.values[0];
+        } else if(item.queryString.name == "month") {
+            qs += "&month=" + item.queryString.values[0];
+        } else if(item.queryString.name == "day") {
+            qs += "&day=" + item.queryString.values[0];
+        } else if(item.queryString.name == "ndays") {
+            data.ndays = item.queryString.values[0];
+        }
+    });
+    var endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=dateid" + qs;
+    callWS(endpoint, "text", saveDateIds, data);
+}
+
+function saveDateIds(response, data) {
+    var dateids = response.split('\n');
+    if (dateids.length == 0) {
+        console.error("no dateid was returned " + data);
+        $("#request-error").empty().text("Request for dateid has failed, please try again later").show();
+    } else {
+        sessionStorage.setItem("startDateId", parseInt(dateids[0]));
+        sessionStorage.setItem("endDateId", parseInt(dateids[0]) + parseInt(data.ndays));
         gotoNextSelection();
     }
 }
@@ -355,6 +249,12 @@ function gotoNextSelection() {
     switch(currentSelection) {
         case "instrument":
             nextSelection = "year";
+            alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
+            $.each(alreadySelected, function(i, item) {
+                if(item.selection == "year") {
+                    nextSelection = "opendap";
+                }
+            });
             break;
         case "year":
             nextSelection = "month";
@@ -363,7 +263,13 @@ function gotoNextSelection() {
             nextSelection = "day";
             break;
         case "day":
-            nextSelection = "opendap";
+            nextSelection = "instrument";
+            alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
+            $.each(alreadySelected, function(i, item) {
+                if(item.selection == "instrument") {
+                    nextSelection = "opendap";
+                }
+            });
             break;
         case "opendap":
             nextSelection = "parameter";
@@ -379,7 +285,7 @@ function gotoNextSelection() {
             alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
             $.each(alreadySelected, function(i, item) {
                 if(item.selection == "instrument") {
-                    nextSelection = null;
+                    nextSelection = "opendap";
                 }
             });
             break;
@@ -411,6 +317,8 @@ function goBack() {
             $("#" + sessionStorage.getItem("selecting") + "-list").empty().hide();
             sessionStorage.setItem("selecting", lastSelected.selection);
             sessionStorage.setItem("alreadySelected", JSON.stringify(addSelected));
+            sessionStorage.removeItem("startDateId");
+            sessionStorage.removeItem("endDateId");
         }
         loadData(lastSelected.selection);
     }
@@ -418,16 +326,193 @@ function goBack() {
 
 function cancelSelect() {
     sessionStorage.removeItem("alreadySelected");
+    sessionStorage.removeItem("startDateId");
+    sessionStorage.removeItem("endDateid");
     $("#current-selection").empty();
     $("#instrument-list").empty();
-    $("#year-select").empty();
-    $("#month-select").empty();
-    $("#day-select").empty();
-    $("#parameter-select").empty();
-    $("#opendap-select").empty();
+    $("#year-list").empty();
+    $("#month-list").empty();
+    $("#day-list").empty();
+    $("#parameter-list").empty();
+    $("#opendap-list").empty();
     goToTab('data');
 }
 
 function twoDigit(num) {
     return (num < 10? "0"+num:num);
+}
+
+function callWS(endpoint, responseType, callback, callbackData) {
+    console.log("endpoint = " + endpoint);
+    $("#loading").show();
+    $.ajax(endpoint, {
+        type: "get",
+        dataType: responseType,
+        success: function(response, status) {
+            $("#loading").hide();
+            callback(response, callbackData);
+        },
+        error: function(xhr, textStatus, errorThrown) {
+            $("#loading").hide();
+            console.error("query to " + endpoint + " failed " + JSON.stringify(xhr));
+            $("#request-error").empty().text("Request for data has failed, please try again later").show();
+        }
+    });
+}
+
+function displayInstruments(response, data) {
+    var instruments = response.instruments;
+    if(instruments) {
+        var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
+        $.each(instruments, function(i, item) {
+            html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + item.kinst + '"/><label for="' + item.kinst + '">' + item.kinst + ' - ' + item.name + ' - ' + item.class + '</label></div>';
+        });
+        $("#instrument-list").empty().append(html).show();
+    }
+}
+
+function displayTextInstruments(response, data) {
+    var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
+    var instruments = response.split('\n');;
+    $.each(instruments, function (i, instrument) {
+        if (instrument != "") {
+            var fields = instrument.split(',');
+            var id = fields[0];
+            var longName = fields[2];
+            html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + id + '"/><label for="' + id + '">' + id + ' - ' + longName + '</label></div>';
+        }
+    });
+    $("#instrument-list").empty().append(html).show();
+}
+
+function displayYear(response, data) {
+    var html = '<div id="data-title" class="data-title">Select a Year</div>';
+    html += '<select class="option-items" size="5" name="years" id="years" required>';
+    var years = response.split('\n');
+    $.each(years, function (i, year) {
+        if (year != "") {
+            html += '<option class="option-item" id="' + year + '" value="' + year + '">' + year + '</option>';
+        }
+    });
+    html += '</select>';
+    $("#year-list").empty().append(html).show();
+}
+
+function displayMonth(response, data) {
+    var html = '<div id="data-title" class="data-title">Select a Month</div>';
+    html += '<select class="option-items" size="5" name="months" id="months" required>';
+    var months = response.split('\n');
+    $.each(months, function (i, month) {
+        if (month != "") {
+            html += '<option class="option-item" id="' + month + '" value="' + month + '">' + month + '</option>';
+        }
+    });
+    html += '</select>';
+    $("#month-list").empty().append(html).show();
+}
+
+function displayDay(response, data) {
+    var html = '<div id="data-title" class="data-title">Select a Day</div>';
+    html += '<select class="option-items" size="5" name="days" id="days" required>';
+    var days = response.split('\n');
+    $.each(days, function (i, day) {
+        if (day != "") {
+            html += '<option class="option-item" id="' + day + '" value="' + day + '">' + day + '</option>';
+        }
+    });
+    html += '</select>';
+    html += '<div id="num-days-title" class="data-title">Enter number of days</div>';
+    html += '<input id="num-days" class="num-days" type="number" min="1" max="365" required/>';
+    $("#day-list").empty().append(html).show();
+}
+
+function displayOpendap(response, data) {
+    var startDate = new Date();
+    startDate.setYear(data.startYear);
+    startDate.setMonth(data.startMonth);
+    startDate.setDate(data.startDay);
+    var endDate = startDate;
+    endDate.setDate(endDate.getDate() + parseInt(data.ndays));
+    var endYear = endDate.getFullYear();
+    var endMonth = endDate.getMonth();
+    if(endMonth == 0) endMonth = 12;
+    var endDay = endDate.getDate();
+
+    var html = '<div id="data-title" class="data-title">Select an Return Type</div>';
+    var firstFile = true;
+    var containers = "";
+    var constraints = "";
+    var files = response.split('\n');
+    var alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
+    $.each(files, function (i, file) {
+        if (file != "") {
+            if(!firstFile) {
+                containers += ",";
+                constraints += ",";
+            }
+            firstFile = false;
+            containers += file;
+            constraints += file + '.constraint=%22date(' + data.startYear + ',' + twoDigit(data.startMonth) + twoDigit(data.startDay) + ',0,0,' + endYear + ',' + twoDigit(endMonth) + twoDigit(endDay) + ',2359,5999)';
+            if(alreadySelected) {
+                $.each(alreadySelected, function (i, item) {
+                    if(item.queryString.name == "params") {
+                        constraints += ";parameters(";
+                        var values = item.queryString.values;
+                        var first = true;
+                        $.each(values, function (j, value) {
+                            if (!first) constraints += ",";
+                            first = false;
+                            constraints += value;
+                        });
+                        constraints += ")";
+                    }
+                });
+            }
+            constraints += "%22";
+        }
+    });
+    var start = "http://cedarweb.vsp.ucar.edu/opendap?request=define+d+as+" + containers;
+    var withConstraints = start + "+with+" + constraints;
+    console.log("withConstraints = " + withConstraints);
+    var end = "+for+d;";
+    var das = start + ";get+das" + end;
+    var dds = withConstraints + ";get+dds" + end;
+    var dods = withConstraints + ";get+dods" + end;
+    var flat = withConstraints + ";get+flat" + end;
+    var tab = withConstraints + ";get+tab" + end;
+    var info = withConstraints + ";get+info" + end;
+    var stream = withConstraints + ";get+stream" + end;
+    html += '<p><a target="opendap" href="' + das + '">DAS</a> - Data Attributes</p>'
+    html += '<p><a target="opendap" href="' + dds + '">DDS</a> - Data Structure</p>'
+    html += '<p><a target="opendap" href="' + dods + '">DATA</a> - Data</p>'
+    html += '<p><a target="opendap" href="' + flat + '">FLAT</a> - Flat ascii</p>'
+    html += '<p><a target="opendap" href="' + tab + '">TAB</a> - Tab delimited ascii</p>'
+    html += '<p><a target="opendap" href="' + stream + '">STREAM</a> - Data streamed directly</p>'
+    html += '<p><a target="opendap" href="' + info + '">INFO</a> - Data information</p>'
+    $("#opendap-list").empty().append(html).show();
+}
+
+function displayAllParameters(response, data) {
+    var parameters = response.parameters;
+    if (parameters) {
+        var html = '<div id="data-title" class="data-title">Select One or More Parameters</div>';
+        $.each(parameters, function (i, item) {
+            html += '<div id="instrument-div"><input type="checkbox" name="parameter" class="instrument-item" id="' + item.id + '"/><label for="' + item.id + '">' + item.id + ' - ' + item.name + '</label></div>';
+        });
+        $("#parameter-list").empty().append(html).show();
+    }
+}
+
+function displayParameters(response, data) {
+    var params = response.split('\n');
+    var html = '<div id="data-title" class="data-title">Select One or More Parameters</div>';
+    $.each(params, function (i, param) {
+        if (param != "") {
+            var fields = param.split(',');
+            var id = fields[0];
+            var name = fields[1];
+            html += '<div id="instrument-div"><input type="checkbox" name="parameter" class="instrument-item" id="' + id + '"/><label for="' + id + '">' + id + ' - ' + name + '</label></div>';
+        }
+    });
+    $("#parameter-list").empty().append(html).show();
 }
