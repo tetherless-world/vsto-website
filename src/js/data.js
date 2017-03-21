@@ -65,7 +65,7 @@ function loadData(nextSelection) {
     if(nextSelection == "instrument") {
         sessionStorage.setItem("selecting","instrument");
         if(hasQueryString == false) {
-            endpoint = "http://localhost:8080/instruments" + qs;
+            endpoint = "https://vsto.org/vsto-ws/instruments" + qs;
             callWS(endpoint, "json", displayInstruments, data);
         } else {
             endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=instruments" + qs;
@@ -90,7 +90,7 @@ function loadData(nextSelection) {
     } else if(nextSelection == "parameter") {
         sessionStorage.setItem("selecting","parameter");
         if(hasQueryString == false) {
-            endpoint = "http://localhost:8080/parameters" + qs;
+            endpoint = "https://vsto.org/vsto-ws/parameters" + qs;
             callWS(endpoint, "json", displayAllParameters, data);
         } else {
             endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=params" + qs;
