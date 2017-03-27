@@ -27,8 +27,15 @@ function loadData(nextSelection) {
     var alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
     if (alreadySelected) {
         hasQueryString = true;
+        var firstQS = true;
         $.each(alreadySelected, function (i, item) {
-            qs += "&" + item.queryString.name + "=";
+            if(firstQS) {
+                qs += "?";
+                firstQS = false;
+            } else {
+                qs += "&";
+            }
+            qs += item.queryString.name + "=";
             values = item.queryString.values;
             var first = true;
             $.each(values, function (j, value) {
@@ -64,38 +71,28 @@ function loadData(nextSelection) {
 
     if(nextSelection == "instrument") {
         sessionStorage.setItem("selecting","instrument");
-        if(hasQueryString == false) {
-            endpoint = "https://vsto.org/vsto-ws/instruments" + qs;
-            callWS(endpoint, "json", displayInstruments, data);
-        } else {
-            endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=instruments" + qs;
-            callWS(endpoint, "text", displayTextInstruments, data);
-        }
+        endpoint = props.vstoWsUrl + "/instruments" + qs;
+        callWS(endpoint, "json", displayInstruments, data);
     } else if(nextSelection == "year") {
         sessionStorage.setItem("selecting","year");
-        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=years" + qs;
-        callWS(endpoint, "text", displayYear, data);
+        endpoint = props.vstoWsUrl + "/years" + qs;
+        callWS(endpoint, "json", displayYear, data);
     } else if(nextSelection == "month") {
         sessionStorage.setItem("selecting","month");
-        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=months" + qs;
-        callWS(endpoint, "text", displayMonth, data);
+        endpoint = props.vstoWsUrl + "/months" + qs;
+        callWS(endpoint, "json", displayMonth, data);
     } else if(nextSelection == "day") {
         sessionStorage.setItem("selecting","day");
-        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=days" + qs;
-        callWS(endpoint, "text", displayDay, data);
+        endpoint = props.vstoWsUrl + "/days" + qs;
+        callWS(endpoint, "json", displayDay, data);
     } else if(nextSelection == "opendap") {
         sessionStorage.setItem("selecting","opendap");
-        endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=files" + qs;
-        callWS(endpoint, "text", displayOpendap, data);
+        endpoint = props.vstoWsUrl + "/files" + qs;
+        callWS(endpoint, "json", displayOpendap, data);
     } else if(nextSelection == "parameter") {
         sessionStorage.setItem("selecting","parameter");
-        if(hasQueryString == false) {
-            endpoint = "https://vsto.org/vsto-ws/parameters" + qs;
-            callWS(endpoint, "json", displayAllParameters, data);
-        } else {
-            endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=params" + qs;
-            callWS(endpoint, "text", displayParameters, data);
-        }
+        endpoint = props.vstoWsUrl + "/parameters" + qs;
+        callWS(endpoint, "json", displayAllParameters, data);
     } else {
         sessionStorage.removeItem("selecting");
         console.error("Requesting an invalid type " + request);
@@ -214,32 +211,36 @@ function continueOn() {
 function getDateIds() {
     var addSelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
     var qs = "";
+    var firstParam = true;
     var data = {};
     $.each(addSelected, function (i, item) {
         if(item.queryString.name == "year") {
-            qs += "&year=" + item.queryString.values[0];
+            qs += (firstParam ? "?" : "&");
+            firstParam = false;
+            qs += "year=" + item.queryString.values[0];
         } else if(item.queryString.name == "month") {
-            qs += "&month=" + item.queryString.values[0];
+            qs += (firstParam ? "?" : "&");
+            firstParam = false;
+            qs += "month=" + item.queryString.values[0];
         } else if(item.queryString.name == "day") {
-            qs += "&day=" + item.queryString.values[0];
+            qs += (firstParam ? "?" : "&");
+            firstParam = false;
+            qs += "day=" + item.queryString.values[0];
         } else if(item.queryString.name == "ndays") {
             data.ndays = item.queryString.values[0];
         }
     });
-    var endpoint = "http://cedarweb.vsp.ucar.edu/rstfl/catalog.php?system=cedar&request=dateid" + qs;
-    callWS(endpoint, "text", saveDateIds, data);
+    var endpoint = props.vstoWsUrl + "/dateid" + qs;
+    callWS(endpoint, "json", saveDateIds, data);
 }
 
 function saveDateIds(response, data) {
-    var dateids = response.split('\n');
-    if (dateids.length == 0) {
-        console.error("no dateid was returned " + data);
-        $("#request-error").empty().text("Request for dateid has failed, please try again later").show();
-    } else {
-        sessionStorage.setItem("startDateId", parseInt(dateids[0]));
-        sessionStorage.setItem("endDateId", parseInt(dateids[0]) + parseInt(data.ndays));
-        gotoNextSelection();
-    }
+    console.log(response);
+    var dateid = response.date_id;
+    console.log(dateid);
+    sessionStorage.setItem("startDateId", parseInt(dateid));
+    sessionStorage.setItem("endDateId", parseInt(dateid) + parseInt(data.ndays));
+    gotoNextSelection();
 }
 
 function gotoNextSelection() {
@@ -361,14 +362,14 @@ function callWS(endpoint, responseType, callback, callbackData) {
 }
 
 function displayInstruments(response, data) {
+    var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
     var instruments = response.instruments;
     if(instruments) {
-        var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
         $.each(instruments, function(i, item) {
             html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + item.kinst + '"/><label for="' + item.kinst + '">' + item.kinst + ' - ' + item.name + ' - ' + item.class + '</label></div>';
         });
-        $("#instrument-list").empty().append(html).show();
     }
+    $("#instrument-list").empty().append(html).show();
 }
 
 function displayTextInstruments(response, data) {
@@ -386,43 +387,46 @@ function displayTextInstruments(response, data) {
 }
 
 function displayYear(response, data) {
+    console.log(response);
     var html = '<div id="data-title" class="data-title">Select a Year</div>';
-    html += '<select class="option-items" size="5" name="years" id="years" required>';
-    var years = response.split('\n');
-    $.each(years, function (i, year) {
-        if (year != "") {
-            html += '<option class="option-item" id="' + year + '" value="' + year + '">' + year + '</option>';
-        }
-    });
-    html += '</select>';
+    var years = response.years;
+    if(years) {
+        html += '<select class="option-items" size="5" name="years" id="years" required>';
+        $.each(years, function (i, item) {
+            html += '<option class="option-item" id="' + item.year + '" value="' + item.year + '">' + item.year + '</option>';
+        });
+        html += '</select>';
+    }
     $("#year-list").empty().append(html).show();
 }
 
 function displayMonth(response, data) {
+    console.log(response);
     var html = '<div id="data-title" class="data-title">Select a Month</div>';
-    html += '<select class="option-items" size="5" name="months" id="months" required>';
-    var months = response.split('\n');
-    $.each(months, function (i, month) {
-        if (month != "") {
-            html += '<option class="option-item" id="' + month + '" value="' + month + '">' + month + '</option>';
-        }
-    });
-    html += '</select>';
+    var months = response.months;
+    if(months) {
+        html += '<select class="option-items" size="5" name="months" id="months" required>';
+        $.each(months, function (i, item) {
+            html += '<option class="option-item" id="' + item.month + '" value="' + item.month + '">' + item.month + '</option>';
+        });
+        html += '</select>';
+    }
     $("#month-list").empty().append(html).show();
 }
 
 function displayDay(response, data) {
-    var html = '<div id="data-title" class="data-title">Select a Day</div>';
-    html += '<select class="option-items" size="5" name="days" id="days" required>';
-    var days = response.split('\n');
-    $.each(days, function (i, day) {
-        if (day != "") {
-            html += '<option class="option-item" id="' + day + '" value="' + day + '">' + day + '</option>';
-        }
-    });
-    html += '</select>';
-    html += '<div id="num-days-title" class="data-title">Enter number of days</div>';
-    html += '<input id="num-days" class="num-days" type="number" min="1" max="365" required/>';
+    console.log(response);
+    var days = response.days;
+    if(days) {
+        var html = '<div id="data-title" class="data-title">Select a Day</div>';
+        html += '<select class="option-items" size="5" name="days" id="days" required>';
+        $.each(days, function (i, item) {
+            html += '<option class="option-item" id="' + item.day + '" value="' + item.day + '">' + item.day + '</option>';
+        });
+        html += '</select>';
+        html += '<div id="num-days-title" class="data-title">Enter number of days</div>';
+        html += '<input id="num-days" class="num-days" type="number" min="1" max="365" required/>';
+    }
     $("#day-list").empty().append(html).show();
 }
 
@@ -442,34 +446,33 @@ function displayOpendap(response, data) {
     var firstFile = true;
     var containers = "";
     var constraints = "";
-    var files = response.split('\n');
+    console.log(response);
+    var files = response.files;
     var alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
     $.each(files, function (i, file) {
-        if (file != "") {
-            if(!firstFile) {
-                containers += ",";
-                constraints += ",";
-            }
-            firstFile = false;
-            containers += file;
-            constraints += file + '.constraint=%22date(' + data.startYear + ',' + twoDigit(data.startMonth) + twoDigit(data.startDay) + ',0,0,' + endYear + ',' + twoDigit(endMonth) + twoDigit(endDay) + ',2359,5999)';
-            if(alreadySelected) {
-                $.each(alreadySelected, function (i, item) {
-                    if(item.queryString.name == "params") {
-                        constraints += ";parameters(";
-                        var values = item.queryString.values;
-                        var first = true;
-                        $.each(values, function (j, value) {
-                            if (!first) constraints += ",";
-                            first = false;
-                            constraints += value;
-                        });
-                        constraints += ")";
-                    }
-                });
-            }
-            constraints += "%22";
+        if(!firstFile) {
+            containers += ",";
+            constraints += ",";
         }
+        firstFile = false;
+        containers += file.file_name;
+        constraints += file.file_name + '.constraint=%22date(' + data.startYear + ',' + twoDigit(data.startMonth) + twoDigit(data.startDay) + ',0,0,' + endYear + ',' + twoDigit(endMonth) + twoDigit(endDay) + ',2359,5999)';
+        if(alreadySelected) {
+            $.each(alreadySelected, function (i, item) {
+                if(item.queryString.name == "params") {
+                    constraints += ";parameters(";
+                    var values = item.queryString.values;
+                    var first = true;
+                    $.each(values, function (j, value) {
+                        if (!first) constraints += ",";
+                        first = false;
+                        constraints += value;
+                    });
+                    constraints += ")";
+                }
+            });
+        }
+        constraints += "%22";
     });
     var start = "http://cedarweb.vsp.ucar.edu/opendap?request=define+d+as+" + containers;
     var withConstraints = start + "+with+" + constraints;
@@ -493,6 +496,7 @@ function displayOpendap(response, data) {
 }
 
 function displayAllParameters(response, data) {
+    console.log(response);
     var parameters = response.parameters;
     if (parameters) {
         var html = '<div id="data-title" class="data-title">Select One or More Parameters</div>';

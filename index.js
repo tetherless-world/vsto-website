@@ -49,6 +49,10 @@ metalsmith(__dirname)
 	*/
 	.metadata({
 		root_dir: env["root_dir"],
+		rstfl_url: env["rstfl_url"],
+		vsto_ws_url: env["vsto_ws_url"],
+		hostname: env["hostname"],
+		localhost: env["localhost"],
 		use_local: false
 	})
 

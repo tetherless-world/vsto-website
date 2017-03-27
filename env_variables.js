@@ -13,14 +13,18 @@ module.exports = function(environment) {
 
 	switch (environment) {
 		case "local":
-			env["root_dir"] = "/~westp/vsto";
-			env["hostname"] = "http://localhost";
+			env["hostname"] = "http://localhost:8080";
+			env["rstfl_url"] = "http://localhost/~westp/rstfl";
+			env["vsto_ws_url"] = "http://localhost:8080";
 			env["localhost"] = true;
+			env["root_dir"] = "/~westp/vsto";
 
 			break;
 		case "prod":
 			env["root_dir"] = "";
 			env["hostname"] = "https://vsto.org";
+			env["rstfl_url"] = "http://cedarweb.vsp.ucar.edu/rstfl";
+			env["vsto_ws_url"] = "https://vsto.org/vsto-ws";
 			env["localhost"] = false;
 
 			break;
