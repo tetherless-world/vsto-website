@@ -1,7 +1,10 @@
 .PHONY: build
 
 build: node_modules package.json
-	node --harmony index.js local
+	nodejs --harmony index.js local
+
+prod: node_modules package.json
+	nodejs --harmony index.js prod
 
 install: node_modules package.json
 	npm install
