@@ -12,8 +12,7 @@ var envVariables 	= require("./env_variables.js"),
 	names			= require("metalsmith-rename"),
 	links			= require("metalsmith-linkcheck"),
 	check 			= require("metalsmith-if"),
-	local			= require("metalsmith-custom-rename"),
-	s3				= require("metalsmith-custom-s3");
+	local			= require("metalsmith-custom-rename");
 
 /* 
 * Environment (other arguments start at [3])
