@@ -16,7 +16,6 @@ function loadData(nextSelection) {
     $("#opendap-list").hide();
 
     if (!nextSelection) nextSelection = "instrument";
-    console.log("nextSelection = " + nextSelection);
 
     var qs = "";
     var data = {};
@@ -190,7 +189,6 @@ function continueOn() {
             var newSelected = [newItem];
             sessionStorage.setItem("alreadySelected", JSON.stringify(newSelected));
         }
-        console.log("alreadySelected = " + sessionStorage.getItem("alreadySelected"));
         if(sessionStorage.getItem("selecting") == "day") {
             getDateIds();
         } else {
@@ -235,9 +233,7 @@ function getDateIds() {
 }
 
 function saveDateIds(response, data) {
-    console.log(response);
     var dateid = response.date_id;
-    console.log(dateid);
     sessionStorage.setItem("startDateId", parseInt(dateid));
     sessionStorage.setItem("endDateId", parseInt(dateid) + parseInt(data.ndays));
     gotoNextSelection();
@@ -304,17 +300,14 @@ function goBack() {
     // pop the already selected stack and redisplay the already selected div
     // pop the query string stack
     var addSelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
-    console.log("alreadySelected before = " + JSON.stringify(addSelected));
     if(!addSelected || addSelected.length < 1) cancelSelect();
     else {
         var lastSelected = addSelected.shift();
-        console.log("alreadySelected after = " + JSON.stringify(addSelected));
         $("#" + sessionStorage.getItem("selecting") + "-list").empty().hide();
         sessionStorage.setItem("selecting", lastSelected.selection);
         sessionStorage.setItem("alreadySelected", JSON.stringify(addSelected));
         if(lastSelected.selection == "day") {
             lastSelected = addSelected.shift();
-            console.log("alreadySelected after = " + JSON.stringify(addSelected));
             $("#" + sessionStorage.getItem("selecting") + "-list").empty().hide();
             sessionStorage.setItem("selecting", lastSelected.selection);
             sessionStorage.setItem("alreadySelected", JSON.stringify(addSelected));
@@ -344,7 +337,6 @@ function twoDigit(num) {
 }
 
 function callWS(endpoint, responseType, callback, callbackData) {
-    console.log("endpoint = " + endpoint);
     $("#loading").show();
     $.ajax(endpoint, {
         type: "get",
@@ -366,28 +358,58 @@ function displayInstruments(response, data) {
     var instruments = response.instruments;
     if(instruments) {
         $.each(instruments, function(i, item) {
-            html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + item.kinst + '"/><label for="' + item.kinst + '">' + item.kinst + ' - ' + item.name + ' - ' + item.class + '</label></div>';
+            html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + item.kinst + '"/><label for="' + item.kinst + '"> ' + item.kinst + ' - ' + item.name + ' - ' + item.class + '</label><span class="item-detail" id="' + item.kinst + '-display" onclick="displayInstrument(\'' + item.kinst + '\')" style="cursor:pointer;"> &gt; details ...</span></span></div>';
+            html += '<div class="item-description" id="' + item.kinst + '-description"></div>'
         });
     }
     $("#instrument-list").empty().append(html).show();
 }
 
-function displayTextInstruments(response, data) {
-    var html = '<div id="data-title" class="data-title">Select an Instrument</div>';
-    var instruments = response.split('\n');;
-    $.each(instruments, function (i, instrument) {
-        if (instrument != "") {
-            var fields = instrument.split(',');
-            var id = fields[0];
-            var longName = fields[2];
-            html += '<div id="instrument-div"><input type="radio" name="instrument" class="instrument-item" id="' + id + '"/><label for="' + id + '">' + id + ' - ' + longName + '</label></div>';
+function displayInstrument(kinst) {
+    var kinstElement = $("#" + kinst + "-description");
+    var displayElement = $("#" + kinst + "-display");
+    if(kinstElement.is(':visible')) {
+        displayElement.empty().append(" &gt; detail...");
+        kinstElement.hide();
+    } else {
+        if (kinstElement.is(":empty")) {
+            var endpoint = props.vstoWsUrl + "/instrument/" + kinst;
+            var data = {element: kinstElement, kinst: kinst};
+            callWS(endpoint, "json", displayInstrumentDetail, data);
         }
-    });
-    $("#instrument-list").empty().append(html).show();
+        displayElement.empty().append(" &lt; hide...");
+        kinstElement.show();
+    }
+}
+
+function displayInstrumentDetail(response, data) {
+    var html = "";
+    if(response.description) {
+        html += '<p><span class="item-description-title">Description:</span>' + response.description + '</p>';
+    }
+    if(response.class_type) {
+        html += '<p><span class="item-description-title">Class:</span>' + displayClassHierarchy(response.class_type) + '</p>';
+    }
+    if(response.op_mode.length > 0) {
+        html += '<p><span class="item-description-title">Operating Modes:</span></p>';
+        html += '<ul>';
+        $.each(response.op_mode, function(i, item) {
+            html += '<li>' + item.kindat + ' - ' + item.description + '</li>';
+        });
+        html += '</ul>';
+    }
+    data.element.append(html);
+}
+
+function displayClassHierarchy(currentClass) {
+    var ret = ' &gt; ' + currentClass.name;
+    if(currentClass.parent) {
+        ret += displayClassHierarchy(currentClass.parent);
+    }
+    return ret;
 }
 
 function displayYear(response, data) {
-    console.log(response);
     var html = '<div id="data-title" class="data-title">Select a Year</div>';
     var years = response.years;
     if(years) {
@@ -401,7 +423,6 @@ function displayYear(response, data) {
 }
 
 function displayMonth(response, data) {
-    console.log(response);
     var html = '<div id="data-title" class="data-title">Select a Month</div>';
     var months = response.months;
     if(months) {
@@ -415,7 +436,6 @@ function displayMonth(response, data) {
 }
 
 function displayDay(response, data) {
-    console.log(response);
     var days = response.days;
     if(days) {
         var html = '<div id="data-title" class="data-title">Select a Day</div>';
@@ -446,7 +466,6 @@ function displayOpendap(response, data) {
     var firstFile = true;
     var containers = "";
     var constraints = "";
-    console.log(response);
     var files = response.files;
     var alreadySelected = JSON.parse(sessionStorage.getItem("alreadySelected"));
     $.each(files, function (i, file) {
@@ -476,7 +495,6 @@ function displayOpendap(response, data) {
     });
     var start = "http://cedarweb.vsp.ucar.edu/opendap?request=define+d+as+" + containers;
     var withConstraints = start + "+with+" + constraints;
-    console.log("withConstraints = " + withConstraints);
     var end = "+for+d;";
     var das = start + ";get+das" + end;
     var dds = withConstraints + ";get+dds" + end;
@@ -496,27 +514,48 @@ function displayOpendap(response, data) {
 }
 
 function displayAllParameters(response, data) {
-    console.log(response);
     var parameters = response.parameters;
     if (parameters) {
         var html = '<div id="data-title" class="data-title">Select One or More Parameters</div>';
         $.each(parameters, function (i, item) {
-            html += '<div id="instrument-div"><input type="checkbox" name="parameter" class="instrument-item" id="' + item.id + '"/><label for="' + item.id + '">' + item.id + ' - ' + item.name + '</label></div>';
+            html += '<div id="instrument-div"><input type="checkbox" name="parameter" class="instrument-item" id="' + item.id + '"/><label for="' + item.id + '">' + item.id + ' - ' + item.name + '</label><span class="item-detail" id="param-' + item.id + '-display" onclick="displayParameter(\'' + item.id + '\')" style="cursor:pointer;"> &gt; details ...</span></div>';
+            html += '<div class="item-description" id="param-' + item.id + '-description"></div>'
         });
         $("#parameter-list").empty().append(html).show();
     }
 }
 
-function displayParameters(response, data) {
-    var params = response.split('\n');
-    var html = '<div id="data-title" class="data-title">Select One or More Parameters</div>';
-    $.each(params, function (i, param) {
-        if (param != "") {
-            var fields = param.split(',');
-            var id = fields[0];
-            var name = fields[1];
-            html += '<div id="instrument-div"><input type="checkbox" name="parameter" class="instrument-item" id="' + id + '"/><label for="' + id + '">' + id + ' - ' + name + '</label></div>';
+function displayParameter(param) {
+    var paramElement = $("#param-" + param + "-description");
+    var displayElement = $("#param-" + param + "-display");
+    if(paramElement.is(':visible')) {
+        displayElement.empty().append(" &gt; detail...");
+        paramElement.hide();
+    } else {
+        if (paramElement.is(":empty")) {
+            var endpoint = props.vstoWsUrl + "/parameter/" + param;
+            var data = {element: paramElement, param: param};
+            callWS(endpoint, "json", displayParameterDetail, data);
         }
-    });
-    $("#parameter-list").empty().append(html).show();
+        displayElement.empty().append(" &lt; hide...");
+        paramElement.show();
+    }
 }
+
+function displayParameterDetail(response, data) {
+    var html = "";
+    if(response.long_name) {
+        html += '<p><span class="item-description-title">Long name: </span>' + response.long_name + '</p>';
+    }
+    if(response.madrigal_name) {
+        html += '<p><span class="item-description-title">Madrigal name: </span>' + response.madrigal_name + '</p>';
+    }
+    if(response.units) {
+        html += '<p><span class="item-description-title">Units: </span>' + response.units + '</p>';
+}
+    if(response.scale) {
+        html += '<p><span class="item-description-title">Scale: </span>' + response.scale + '</p>';
+    }
+    data.element.append(html);
+}
+

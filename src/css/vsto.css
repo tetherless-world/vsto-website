@@ -269,7 +269,7 @@ table#calendar tr td table td span {
   display: none;
 }
 
-.instrument-linst {
+.instrument-list {
   display: none;
 }
 
@@ -309,18 +309,14 @@ table#calendar tr td table td span {
 }
 
 .request-buttons {
-  position: fixed;
-  top: 100px;
-  right: 28%;
   display: flex;
-  flex-flow: column nowrap;
-  align-items: flex-end;
-  margin-top: 15px;
+  flex-flow: row wrap;
   cursor: pointer;
 }
 
 .button-div {
   flex: 0 1 50px;
+  margin: 10px;
 }
 
 .vsto-button {
@@ -367,4 +363,20 @@ table#calendar tr td table td span {
   font-weight: 300;
   font-size: 14px;
   display: none;
+}
+
+.item-description {
+  display: none;
+  border: 1px solid black;
+  padding: 5px;
+  margin-left: 20px;
+  width: 60%;
+}
+
+.item-description-title {
+  font-weight: bold;
+}
+
+.item-detail {
+  color: blue;
 }
