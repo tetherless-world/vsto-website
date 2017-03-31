@@ -305,18 +305,36 @@ table#calendar tr td table td span {
 
 
 .request-selection {
+  -webkit-box-flex: 1;
+  -ms-flex: 1 1 500px;
   flex: 1 1 500px;
 }
 
 .request-buttons {
+  display: -webkit-box;
+  display: -ms-flexbox;
   display: flex;
+  -ms-flex-flow: row wrap;
   flex-flow: row wrap;
   cursor: pointer;
 }
 
 .button-div {
+  -webkit-box-flex: 0;
+  -ms-flex: 0 1 50px;
   flex: 0 1 50px;
   margin: 10px;
+}
+
+@media screen and (max-width: 510px) {
+  .request-buttons {
+    -ms-flex-flow: column wrap;
+    flex-flow: column wrap;
+  }
+
+  .button-div {
+    flex: 0;
+  }
 }
 
 .vsto-button {
@@ -326,6 +344,7 @@ table#calendar tr td table td span {
   color: white;
   padding: 5px 40px 5px 40px;
   font-size: 16px;
+  width: 150px;
 }
 
 .option-items {
@@ -370,7 +389,6 @@ table#calendar tr td table td span {
   border: 1px solid black;
   padding: 5px;
   margin-left: 20px;
-  width: 60%;
 }
 
 .item-description-title {
