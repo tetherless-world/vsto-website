@@ -308,6 +308,7 @@ table#calendar tr td table td span {
   -webkit-box-flex: 1;
   -ms-flex: 1 1 500px;
   flex: 1 1 500px;
+  margin-bottom: 50px;
 }
 
 .request-buttons {
@@ -317,6 +318,8 @@ table#calendar tr td table td span {
   -ms-flex-flow: row wrap;
   flex-flow: row wrap;
   cursor: pointer;
+  position: fixed;
+  bottom: 0;
 }
 
 .button-div {
